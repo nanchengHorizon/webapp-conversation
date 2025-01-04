@@ -22,6 +22,7 @@ import AppUnavailable from '@/app/components/app-unavailable'
 import { API_KEY, APP_ID, APP_INFO, isShowPrompt, promptTemplate } from '@/config'
 import type { Annotation as AnnotationType } from '@/types/log'
 import { addFileInfos, sortAgentSorts } from '@/utils/tools'
+import { initUser } from '@/app/api/utils/common'
 
 const Main: FC = () => {
   const { t } = useTranslation()
@@ -32,6 +33,7 @@ const Main: FC = () => {
   /*
   * app info
   */
+  const [userId, setUserId] = useState<string | null>(null);
   const [appUnavailable, setAppUnavailable] = useState<boolean>(false)
   const [isUnknownReason, setIsUnknownReason] = useState<boolean>(false)
   const [promptConfig, setPromptConfig] = useState<PromptConfig | null>(null)
@@ -212,6 +214,16 @@ const Main: FC = () => {
     return []
   }
 
+  const initializeUser = async () => {
+    const url = new URL(window.location.href);
+    let sessionId = url.searchParams.get('session_id') || ''; // 获取 sessionId 参数
+
+    const id = initUser(sessionId); // 确保使用 await
+    setUserId(id); // 更新状态
+    console.log('setCookie sessionId=', id); // 打印 parentSession
+    document.cookie = `user_session_id=${id}; path=/;`; // 设置 cookie
+  }
+
   // init
   useEffect(() => {
     if (!hasSetAppConfig) {
@@ -220,6 +232,10 @@ const Main: FC = () => {
     }
     (async () => {
       try {
+        console.log('useEffect setInited start');
+        await initializeUser()
+        console.log('useEffect setInited end');
+
         const [conversationData, appParams] = await Promise.all([fetchConversations(), fetchAppParams()])
 
         // handle current conversation id

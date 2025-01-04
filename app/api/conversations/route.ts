@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import { client, getInfo, setSession } from '@/app/api/utils/common'
 
 export async function GET(request: NextRequest) {
+  // console.log('conversations url', request.nextUrl)
   const { sessionId, user } = getInfo(request)
   try {
     const { data }: any = await client.getConversations(user)
