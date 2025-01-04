@@ -38,7 +38,7 @@ export const getInfo = (request: NextRequest) => {
 }
 
 export const setSession = (sessionId: string) => {
-  return { 'Set-Cookie': `session_id=${sessionId}; path=/; SameSite=Strict;` }
+  return { 'Set-Cookie': `session_id=${sessionId}; path=/; SameSite=None; Secure;` }
 }
 
 export const client = new ChatClient(API_KEY, API_URL || undefined)

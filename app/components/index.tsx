@@ -222,7 +222,7 @@ const Main: FC = () => {
     const id = initUser(sessionId); // 确保使用 await
     setUserId(id); // 更新状态
     console.log('setCookie sessionId=', id); // 打印 parentSession
-    document.cookie = `user_session_id=${id}; path=/; SameSite=Strict;`; // 设置 cookie
+    document.cookie = `user_session_id=${id}; path=/; SameSite=None; Secure;`; // 设置 cookie
   }
 
   // init
