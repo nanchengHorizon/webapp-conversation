@@ -10,13 +10,12 @@ export const initUser = (user: string) => {
     user = v4();
   }
   const userId = `${userPrefix}_${user}`;
-  console.log('init userId', userId);
+  // console.log('init userId', userId);
   return userId;
 }
 
 
 export const getInfo = (request: NextRequest) => {
-  console.log('gggggggggggggggggggggggetInfo href', request.nextUrl.href)
   let requestSession = request.cookies.get('session_id')
   let requestSessionId = ''
   if (requestSession) {
@@ -26,7 +25,7 @@ export const getInfo = (request: NextRequest) => {
   const sessionId = requestSessionId || v4()
   const user = request.cookies.get('user_session_id')?.value || null
 
-  console.log(`gggggggggggggggggggggggetInfo userId=${user} nexUrl=${request.nextUrl}`)
+  console.log(`gggggggggggggggggggggggetInfo userId=${user} nexUrl=${request.nextUrl.href}`)
 
   if (!user) {
     throw new Error('User ID is not initialized. Please ensure the user is logged in.');
@@ -39,7 +38,7 @@ export const getInfo = (request: NextRequest) => {
 }
 
 export const setSession = (sessionId: string) => {
-  return { 'Set-Cookie': `session_id=${sessionId}; ; path=/; domain=.10.13.9.20; SameSite=Strict;` }
+  return { 'Set-Cookie': `session_id=${sessionId}; path=/; SameSite=Strict;` }
 }
 
 export const client = new ChatClient(API_KEY, API_URL || undefined)
