@@ -16,6 +16,7 @@ export const initUser = (user: string) => {
 
 
 export const getInfo = (request: NextRequest) => {
+  console.log('gggggggggggggggggggggggetInfo href', request.nextUrl.href)
   let requestSession = request.cookies.get('session_id')
   let requestSessionId = ''
   if (requestSession) {
@@ -38,7 +39,7 @@ export const getInfo = (request: NextRequest) => {
 }
 
 export const setSession = (sessionId: string) => {
-  return { 'Set-Cookie': `session_id=${sessionId}; SameSite=Strict; Secure` }
+  return { 'Set-Cookie': `session_id=${sessionId}; ; path=/; domain=.10.13.9.20; SameSite=Strict;` }
 }
 
 export const client = new ChatClient(API_KEY, API_URL || undefined)

@@ -215,13 +215,16 @@ const Main: FC = () => {
   }
 
   const initializeUser = async () => {
-    const url = new URL(window.location.href);
-    let sessionId = url.searchParams.get('session_id') || ''; // 获取 sessionId 参数
+    if (typeof window !== 'undefined') { // 确保在客户端环境中
+      const url = new URL(window.location.href);
+      console.log('window url=', url); // 打印当前 url
+      let sessionId = url.searchParams.get('session_id') || ''; // 获取 sessionId 参数
 
-    const id = initUser(sessionId); // 确保使用 await
-    setUserId(id); // 更新状态
-    console.log('setCookie sessionId=', id); // 打印 parentSession
-    document.cookie = `user_session_id=${id}; path=/;`; // 设置 cookie
+      const id = initUser(sessionId); // 确保使用 await
+      setUserId(id); // 更新状态
+      console.log('setCookie sessionId=', id); // 打印 parentSession
+      document.cookie = `user_session_id=${id}; path=/; domain=.10.13.9.20; SameSite=Strict;`; // 设置 cookie
+    }
   }
 
   // init
