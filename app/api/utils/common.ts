@@ -3,13 +3,13 @@ import { ChatClient } from 'dify-client'
 import { type NextRequest } from 'next/server'
 import { v4 } from 'uuid'
 
-const userPrefix = `user_${APP_ID}:`
+const userPrefix = `queenou:${APP_ID}:`
 // 获取用户id
 export const initUser = (user: string) => {
   if (!user) {
     user = v4();
   }
-  const userId = `${userPrefix}_${user}`;
+  const userId = `${userPrefix}${user}`;
   // console.log('init userId', userId);
   return userId;
 }
