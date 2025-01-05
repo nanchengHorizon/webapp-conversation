@@ -103,11 +103,15 @@ export type ConversationItem = {
 }
 
 export type AppInfo = {
+  id: string,
+  appId: string,
+  appKey: string,
   title: string
   description: string
   default_language: Locale
   copyright?: string
   privacy_policy?: string
+  app_icon?: string
 }
 
 export enum Resolution {
