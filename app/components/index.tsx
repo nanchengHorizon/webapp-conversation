@@ -24,7 +24,11 @@ import type { Annotation as AnnotationType } from '@/types/log'
 import { addFileInfos, sortAgentSorts } from '@/utils/tools'
 import { initUser } from '@/app/api/utils/common'
 
-const Main: FC = () => {
+export type IMainProps = {
+  params: any
+}
+
+const Main: FC<IMainProps> = () => {
   const { t } = useTranslation()
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
