@@ -90,16 +90,19 @@ export type IChatItem = {
 export type ChatItem = IChatItem & {
   isError?: boolean
   workflow_run_id?: string
-  workflowProcess?: WorkflowProcess
+  workflowProcess?: WorkflowProcess,
+  suggested_questions? : Array<string>
 }
 
 export type ResponseHolder = {}
 
 export type ConversationItem = {
+  isOpen: any
   id: string
   name: string
   inputs: Record<string, any> | null
-  introduction: string
+  introduction: string,
+  suggested_questions: Array<string>
 }
 
 export type AppInfo = {

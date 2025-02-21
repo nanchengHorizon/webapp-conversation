@@ -1,5 +1,5 @@
 import type { IOnCompleted, IOnData, IOnError, IOnFile, IOnMessageEnd, IOnMessageReplace, IOnNodeFinished, IOnNodeStarted, IOnThought, IOnWorkflowFinished, IOnWorkflowStarted } from './base'
-import { get, post, ssePost } from './base'
+import { get, post, ssePost,del,patch } from './base'
 import type { Feedbacktype } from '@/types/app'
 
 export const sendChatMessage = async (
@@ -41,7 +41,7 @@ export const sendChatMessage = async (
 }
 
 export const fetchConversations = async () => {
-  return get('conversations', { params: { limit: 100, first_id: '' } })
+  return get('conversations', { params: { limit: 100, first_id: '',pinned:false } })
 }
 
 export const fetchChatList = async (conversationId: string) => {
@@ -59,4 +59,35 @@ export const updateFeedback = async ({ url, body }: { url: string; body: Feedbac
 
 export const generationConversationName = async (id: string) => {
   return post(`conversations/${id}/name`, { body: { auto_generate: true } })
+}
+// 删除会话
+export const delConversation = async (id: string) => {
+  return del(`conversations/${id}`, { body: { auto_generate: true } })
+}
+// 重命名会话
+export const renameConversation = async (id: string, name: string) => {
+  return post(`conversations/${id}/name`, { body: { name } })
+}
+// 置顶会话
+export const pinConversation = async (id: string) => {
+  return patch(`conversations/${id}/pin`, { body: { } })
+}
+// 取消置顶会话
+export const unpinConversation = async (id: string) => {
+  return patch(`conversations/${id}/unpin`, { body: { } })
+}
+// 上报用户信息
+export const report = async (userid: number | string) => {
+  return fetch(`https://shopifyallservice.kolify.cn/diy/dataReport/report`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      type: "login",
+      data: {
+        userid: Number(userid)
+      }
+    })
+  })
 }

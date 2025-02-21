@@ -60,6 +60,7 @@ type IAnswerProps = {
   onFeedback?: FeedbackFunc
   isResponding?: boolean
   allToolIcons?: Record<string, string | Emoji>
+  onSendQuestion: (message: string) => void
 }
 
 // The component needs to maintain its own state to control whether to display input component
@@ -69,8 +70,9 @@ const Answer: FC<IAnswerProps> = ({
   onFeedback,
   isResponding,
   allToolIcons,
+  onSendQuestion
 }) => {
-  const { id, content, feedback, agent_thoughts, workflowProcess } = item
+  const { id, content, feedback, agent_thoughts, workflowProcess, suggested_questions } = item
   const isAgentMode = !!agent_thoughts && agent_thoughts.length > 0
 
   const { t } = useTranslation()
@@ -164,7 +166,6 @@ const Answer: FC<IAnswerProps> = ({
       ))}
     </div>
   )
-
   return (
     <div key={id}>
       <div className='flex items-start'>
@@ -190,7 +191,19 @@ const Answer: FC<IAnswerProps> = ({
                 : (isAgentMode
                   ? agentModeAnswer
                   : (
-                    <Markdown content={content} />
+                    <div>
+                      <Markdown content={content} />
+                      <ul className='flex items-start flex-wrap' >
+                        {
+                          suggested_questions?.map((item: string) => {
+                            return <li
+                              key={item}
+                              onClick={() => { onSendQuestion(item) }}
+                              className='mt-1 mr-1 max-w-full last:mr-0 shrink-0 py-[5px] leading-[18px] items-center px-4 rounded-lg border border-gray-200 shadow-xs bg-white text-xs font-medium text-primary-600 cursor-pointer'>{item}</li>
+                          })
+                        }
+                      </ul>
+                    </div>
                   ))}
             </div>
             <div className='absolute top-[-14px] right-[-14px] flex flex-row justify-end gap-1'>

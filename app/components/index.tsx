@@ -10,7 +10,7 @@ import Toast from '@/app/components/base/toast'
 import Sidebar from '@/app/components/sidebar'
 import ConfigSence from '@/app/components/config-scence'
 import Header from '@/app/components/header'
-import { fetchAppParams, fetchChatList, fetchConversations, generationConversationName, sendChatMessage, updateFeedback } from '@/service'
+import { fetchAppParams, fetchChatList, fetchConversations, generationConversationName, sendChatMessage, updateFeedback, report } from '@/service'
 import type { ChatItem, ConversationItem, Feedbacktype, PromptConfig, VisionFile, VisionSettings } from '@/types/app'
 import { Resolution, TransferMethod, WorkflowRunningStatus } from '@/types/app'
 import Chat from '@/app/components/chat'
@@ -23,7 +23,8 @@ import { API_KEY, APP_ID, APP_INFO, isShowPrompt, promptTemplate } from '@/confi
 import type { Annotation as AnnotationType } from '@/types/log'
 import { addFileInfos, sortAgentSorts } from '@/utils/tools'
 import { initUser } from '@/app/api/utils/common'
-
+import eventBus from '@/utils/eventBus'
+let once = 0
 export type IMainProps = {
   params: any
 }
@@ -83,6 +84,19 @@ const Main: FC<IMainProps> = () => {
     setNewConversationInfo,
     setExistConversationInfo,
   } = useConversation()
+  localStorage.setItem('conversationList', JSON.stringify(conversationList))
+  // 订阅者
+  const handleUserUpdate = (userData: any[]) => {
+    if (userData?.length === 0) {
+      handleConversationIdChange('-1')
+    }
+    setConversationList(userData)
+  };
+  // 订阅事件
+  if (once === 0) {
+    const unsubscribe = eventBus.subscribe('userUpdate', handleUserUpdate);
+    once = 1
+  }
 
   const [conversationIdChangeBecauseOfNew, setConversationIdChangeBecauseOfNew, getConversationIdChangeBecauseOfNew] = useGetState(false)
   const [isChatStarted, { setTrue: setChatStarted, setFalse: setChatNotStarted }] = useBoolean(false)
@@ -97,12 +111,12 @@ const Main: FC<IMainProps> = () => {
   const hasSetInputs = (() => {
     if (!isNewConversation)
       return true
-
     return isChatStarted
   })()
 
   const conversationName = currConversationInfo?.name || t('app.chat.newChatDefaultName') as string
   const conversationIntroduction = currConversationInfo?.introduction || ''
+  const suggested_questions = currConversationInfo?.suggested_questions || []
 
   const handleConversationSwitch = () => {
     if (!inited)
@@ -119,6 +133,7 @@ const Main: FC<IMainProps> = () => {
       setExistConversationInfo({
         name: item?.name || '',
         introduction: notSyncToStateIntroduction,
+        suggested_questions: item?.suggested_questions || []
       })
     }
     else {
@@ -138,7 +153,7 @@ const Main: FC<IMainProps> = () => {
             content: item.query,
             isAnswer: false,
             message_files: item.message_files?.filter((file: any) => file.belongs_to === 'user') || [],
-
+            suggested_questions: suggested_questions,
           })
           newChatList.push({
             id: item.id,
@@ -147,6 +162,7 @@ const Main: FC<IMainProps> = () => {
             feedback: item.feedback,
             isAnswer: true,
             message_files: item.message_files?.filter((file: any) => file.belongs_to === 'assistant') || [],
+            suggested_questions: suggested_questions,
           })
         })
         setChatList(newChatList)
@@ -194,12 +210,14 @@ const Main: FC<IMainProps> = () => {
         name: t('app.chat.newChatDefaultName'),
         inputs: newConversationInputs,
         introduction: conversationIntroduction,
+        suggested_questions: suggested_questions
       })
     }))
   }
 
   // sometime introduction is not applied to state
   const generateNewChatListWithOpenStatement = (introduction?: string, inputs?: Record<string, any> | null) => {
+
     let calculatedIntroduction = introduction || conversationIntroduction || ''
     const calculatedPromptVariables = inputs || currInputs || null
     if (calculatedIntroduction && calculatedPromptVariables)
@@ -211,6 +229,7 @@ const Main: FC<IMainProps> = () => {
       isAnswer: true,
       feedbackDisabled: true,
       isOpeningStatement: isShowPrompt,
+      suggested_questions: suggested_questions || []
     }
     if (calculatedIntroduction)
       return [openStatement]
@@ -220,23 +239,26 @@ const Main: FC<IMainProps> = () => {
 
   const initializeUser = async () => {
     const url = new URL(window.location.href);
-    console.log('window url=', url); // 打印当前 url
     let sessionId = url.searchParams.get('session_id') || ''; // 获取 sessionId 参数
-
     const id = initUser(sessionId); // 确保使用 await
     setUserId(id); // 更新状态
     console.log('setCookie sessionId=', id); // 打印 parentSession
     document.cookie = `user_session_id=${id}; path=/; SameSite=None; Secure;`; // 设置 cookie
+
+    sessionId && report(sessionId)
+
   }
 
   // init
   useEffect(() => {
+
     if (!hasSetAppConfig) {
       setAppUnavailable(true)
       return
     }
     (async () => {
       try {
+
         console.log('useEffect setInited start');
         await initializeUser()
         console.log('useEffect setInited end');
@@ -252,13 +274,13 @@ const Main: FC<IMainProps> = () => {
         }
         const _conversationId = getConversationIdFromStorage(APP_ID)
         const isNotNewConversation = conversations.some(item => item.id === _conversationId)
-
         // fetch new conversation info
-        const { user_input_form, opening_statement: introduction, file_upload, system_parameters }: any = appParams
+        const { user_input_form, opening_statement: introduction, file_upload, system_parameters, suggested_questions }: any = appParams
         setLocaleOnClient(APP_INFO.default_language, true)
         setNewConversationInfo({
           name: t('app.chat.newChatDefaultName'),
           introduction,
+          suggested_questions,
         })
         const prompt_variables = userInputsFormToPromptVariables(user_input_form)
         setPromptConfig({
@@ -269,11 +291,9 @@ const Main: FC<IMainProps> = () => {
           ...file_upload?.image,
           image_file_size_limit: system_parameters?.system_parameters || 0,
         })
-        setConversationList(conversations as ConversationItem[])
-
+        setConversationList(conversations?.map(item => ({ ...item, suggested_questions, })))
         if (isNotNewConversation)
           setCurrConversationId(_conversationId, APP_ID, false)
-
         setInited(true)
       }
       catch (e: any) {

@@ -117,6 +117,10 @@ const Chat: FC<IChatProps> = ({
     }
   }
 
+  const onSendQuestion = (message: string) => {
+    onSend(message, [])
+  }
+
   return (
     <div className={cn(!feedbackDisabled && 'px-3.5', 'h-full')}>
       {/* Chat List */}
@@ -129,6 +133,7 @@ const Chat: FC<IChatProps> = ({
               item={item}
               feedbackDisabled={feedbackDisabled}
               onFeedback={onFeedback}
+              onSendQuestion={onSendQuestion}
               isResponding={isResponding && isLast}
             />
           }

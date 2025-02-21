@@ -435,3 +435,7 @@ export const put = (url: string, options = {}, otherOptions?: IOtherOptions) => 
 export const del = (url: string, options = {}, otherOptions?: IOtherOptions) => {
   return request(url, Object.assign({}, options, { method: 'DELETE' }), otherOptions)
 }
+
+export const patch = (url: string, options = {}, otherOptions?: IOtherOptions) => {
+  return request(url, Object.assign({}, options, { method: 'PATCH' }), otherOptions)
+}
